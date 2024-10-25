@@ -303,9 +303,25 @@ def slim(X_train: torch.Tensor, y_train: torch.Tensor, X_test: torch.Tensor = No
 
 
 if __name__ == "__main__":
-    from slim_gsgp.datasets.data_loader import load_resid_build_sale_price
-    from slim_gsgp.utils.utils import train_test_split, show_individual
 
+    from slim_gsgp.datasets.data_loader import load_resid_build_sale_price
+    from slim_gsgp.utils.utils import train_test_split
+
+    running = {"rmse" : {"algorithm": "SLIM*ABS",
+                        "copy_parent": False,
+                         "max_depth": None,
+                         "ms_lower": 0,
+                         "ms_upper": 1,
+                         "p_inflate": 0.7},
+
+               "size": {"algorithm": "SLIM*SIG1",
+                        "copy_parent": True,
+                        "max_depth": 100,
+                        "ms_lower": 0,
+                        "ms_upper": 10,
+                        "p_inflate": 0.1}
+
+               }
 
     for ds in ["resid_build_sale_price"]:
 
@@ -313,18 +329,27 @@ if __name__ == "__main__":
 
             X, y = load_resid_build_sale_price(X_y=True)
 
-            X_train, X_test, y_train, y_test = train_test_split(X, y, p_test=0.4, seed=s)
-            X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, p_test=0.5, seed=s)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, p_test=0.3, seed=s)
 
-            #X_train, X_val, y_train, y_val = train_test_split(X, y, p_test=0.3, seed=s)
+            # X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, p_test=0.5, seed=s)
 
-            for algorithm in ["SLIM+SIG2", "SLIM*SIG2", "SLIM+ABS", "SLIM*ABS", "SLIM+SIG1", "SLIM*SIG1"]:
 
-                final_tree = slim(X_train=X_train, y_train=y_train, X_test=X_val, y_test=y_val,
-                                  dataset_name=ds, slim_version=algorithm, max_depth=None, pop_size=100, n_iter=10, seed=s, p_inflate=0.2,
-                                log_path=os.path.join(os.getcwd(),
-                                                                "log", f"test_{ds}-size.csv"),
-                                   reconstruct=True, n_jobs=1)
+            for goal in ["rmse", "size"]:
+
+                final_tree = slim(X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test,
+                                  pop_size=200,
+                                  prob_const=0,
+                                  n_iter=2000,
+                                  seed=s,
+                                  dataset_name=ds,
+                                  slim_version=running[goal]["algorithm"],
+                                  copy_parent=running[goal]["copy_parent"],
+                                  max_depth=running[goal]["max_depth"],
+                                  ms_lower=running[goal]["ms_lower"],
+                                  ms_upper=running[goal]["ms_upper"],
+                                  p_inflate=running[goal]["p_inflate"],
+                                  log_path=os.path.join(os.getcwd(), "log", f"final_{ds}-{goal}.csv"),
+                                   reconstruct=False, n_jobs=1)
 
                 #print(show_individual(final_tree, operator='sum'))
                 #predictions = final_tree.predict(data=X_test, slim_version=algorithm)
