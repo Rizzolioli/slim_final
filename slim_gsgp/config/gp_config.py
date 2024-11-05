@@ -30,6 +30,7 @@ from slim_gsgp.evaluators.fitness_functions import *
 from slim_gsgp.utils.utils import protected_div
 import torch
 
+
 # Define functions and constants
 FUNCTIONS = {
     'add': {'function': torch.add, 'arity': 2},
@@ -60,7 +61,8 @@ gp_solve_parameters = {
     "max_depth": 17,
     "n_elites": 1,
     "elitism": True,
-    "n_iter": 1000
+    "n_iter": 1000,
+    "batch_trainer": None
 }
 
 # GP parameters

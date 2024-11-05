@@ -34,6 +34,8 @@ from slim_gsgp.selection.selection_algorithms import tournament_selection_max, t
 from slim_gsgp.utils.logger import log_settings
 from slim_gsgp.utils.utils import (get_terminals, validate_inputs, get_best_max, get_best_min)
 
+from slim_gsgp.batch_trainers import linear_increase, linear_decrease
+
 
 def gp(X_train: torch.Tensor, y_train: torch.Tensor, X_test: torch.Tensor = None, y_test: torch.Tensor = None,
        dataset_name: str = None,
@@ -54,7 +56,8 @@ def gp(X_train: torch.Tensor, y_train: torch.Tensor, X_test: torch.Tensor = None
        tree_functions: list = list(FUNCTIONS.keys()),
        tree_constants: list = [float(key.replace("constant_", "").replace("_", "-")) for key in CONSTANTS],
        tournament_size: int = 2,
-       test_elite: bool = gp_solve_parameters["test_elite"]):
+       test_elite: bool = gp_solve_parameters["test_elite"],
+       batch_trainer = gp_solve_parameters["batch_trainer"]):
 
     """
     Main function to execute the StandardGP algorithm on specified datasets
@@ -234,6 +237,7 @@ def gp(X_train: torch.Tensor, y_train: torch.Tensor, X_test: torch.Tensor = None
     gp_solve_parameters["ffunction"] = fitness_function_options[fitness_function]
     gp_solve_parameters["n_jobs"] = n_jobs
     gp_solve_parameters["test_elite"] = test_elite
+    gp_solve_parameters["batch_trainer"] = batch_trainer
 
     # ================================
     #       Running the Algorithm
@@ -262,18 +266,35 @@ def gp(X_train: torch.Tensor, y_train: torch.Tensor, X_test: torch.Tensor = None
 
 
 if __name__ == "__main__":
+
     from slim_gsgp.datasets.data_loader import load_resid_build_sale_price
     from slim_gsgp.utils.utils import train_test_split
 
     X, y = load_resid_build_sale_price(X_y=True)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, p_test=0.4)
-    X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, p_test=0.5)
+    n_gens = 2000
 
-    final_tree = gp(X_train=X_train, y_train=y_train,
-                    X_test=X_val, y_test=y_val,
-                    dataset_name='resid_build_sale_price', pop_size=100, n_iter=1000, prob_const=0, fitness_function="rmse", n_jobs=2)
+    # splitting the data once just to know the size of the training data
+    X_train, X_test, y_train, y_test = train_test_split(X, y, p_test=0.3)
 
-    final_tree.print_tree_representation()
-    predictions = final_tree.predict(X_test)
-    print(float(rmse(y_true=y_test, y_pred=predictions)))
+    for bt in [linear_increase(len(X_train), n_gens, X_train=X_train, y_train=y_train),
+               linear_decrease(len(X_train), n_gens, X_train, y_train), None]:
+
+        if bt is None:
+            log_addition = ""
+        elif bt.__name__ == "li":
+            log_addition = "linear_increase"
+        else:
+            log_addition = "linear_decrease"
+
+        for s in range(30):
+            # actual train test split based on seed
+            X_train, X_test, y_train, y_test = train_test_split(X, y, p_test=0.3, seed=s)
+
+            final_tree = gp(seed=s,
+                            X_train=X_train, y_train=y_train,
+                            X_test=X_test, y_test=y_test,
+                            dataset_name=f'resid_build_sale_price_{log_addition}', pop_size=100, n_iter=n_gens, prob_const=0,
+                            fitness_function="rmse", n_jobs=1, batch_trainer=bt, log_path=os.path.join(os.getcwd(),
+                                                                        "log", f"GP_resid.csv"), elitism=False)
+

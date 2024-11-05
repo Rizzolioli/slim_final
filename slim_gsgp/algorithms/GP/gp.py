@@ -28,12 +28,14 @@ import time
 
 import numpy as np
 import torch
+
 from slim_gsgp.algorithms.GP.representations.population import Population
 from slim_gsgp.algorithms.GP.representations.tree import Tree
 from slim_gsgp.utils.diversity import niche_entropy
 from slim_gsgp.utils.logger import logger
 from slim_gsgp.utils.utils import verbose_reporter
 
+import inspect
 
 class GP:
     def __init__(
@@ -112,7 +114,8 @@ class GP:
         ffunction=None,
         n_elites=1,
         depth_calculator=None,
-        n_jobs = 1
+        n_jobs = 1,
+        batch_trainer = None
     ):
         """
         Execute the Genetic Programming algorithm.
@@ -166,7 +169,22 @@ class GP:
             [Tree(tree) for tree in self.initializer(**self.pi_init)]
         )
 
-        # evaluating the intial population
+        # setting generation to 0 for batch training purposes
+        generation = 0
+
+        # changing x and y train if dynamic batch training is used:
+        if batch_trainer is not None:
+
+            params = inspect.signature(batch_trainer).parameters
+
+            local_vars = locals().copy()
+
+            p_params = {var: local_vars[var] for var in [name for name in local_vars.keys() if not name.startswith('__') and name in params.keys()]}
+
+            X_train, y_train = batch_trainer(**p_params)
+
+
+        # evaluating the initial population
         population.evaluate(ffunction, X=X_train, y=y_train, n_jobs=n_jobs)
 
         end = time.time()
@@ -198,6 +216,19 @@ class GP:
 
         # EVOLUTIONARY PROCESS
         for it in range(1, n_iter + 1):
+
+            # setting generation to it for batch training
+            generation = it
+
+            # changing x and y train if dynamic batch training is used:
+            if batch_trainer is not None:
+
+                local_vars = locals().copy()
+
+                p_params = {var: local_vars[var] for var in
+                            [name for name in local_vars.keys() if not name.startswith('__') and name in params.keys()]}
+                X_train, y_train = batch_trainer(**p_params)
+
             # getting the offspring population
             offs_pop, start = self.evolve_population(
                 population,
