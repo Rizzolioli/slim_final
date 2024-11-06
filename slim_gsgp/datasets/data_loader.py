@@ -25,6 +25,16 @@ import pandas
 import pandas as pd
 import torch
 
+def load_merged_data(dataset, X_y=True):
+    df = pd.read_csv(os.path.join(os.path.dirname(os.path.realpath(__file__)), "data/merged_data", f"{dataset}_merged.txt"),
+                     sep=" ", header=None)
+
+    if X_y:
+        return torch.from_numpy(df.values[:, :-1]).float(), torch.from_numpy(df.values[:, -1]).float()
+    else:
+        return df
+
+
 def load_pandas_df(df : pandas.DataFrame, X_y: bool = True):
     """
 

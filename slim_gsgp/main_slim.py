@@ -304,30 +304,30 @@ def slim(X_train: torch.Tensor, y_train: torch.Tensor, X_test: torch.Tensor = No
 
 if __name__ == "__main__":
 
-    from slim_gsgp.datasets.data_loader import load_ld50
+    from slim_gsgp.datasets.data_loader import load_merged_data
     from slim_gsgp.utils.utils import train_test_split
 
-    running = {"rmse" : {"algorithm": "SLIM*SIG1",
-                        "copy_parent": False,
+    running = {"rmse" : {"algorithm": "SLIM+SIG1",
+                        "copy_parent": True,
                          "max_depth": None,
                          "ms_lower": 0,
-                         "ms_upper": 10,
+                         "ms_upper": 3,
                          "p_inflate": 0.9},
 
                "size": {"algorithm": "SLIM*SIG1",
-                        "copy_parent": False,
-                        "max_depth": 50,
+                        "copy_parent": True,
+                        "max_depth": None,
                         "ms_lower": 0,
                         "ms_upper": 10,
                         "p_inflate": 0.1}
 
                }
 
-    for ds in ["ld50"]:
+    for ds in ["concrete"]:
 
         for s in range(30):
 
-            X, y = load_ld50(X_y=True)
+            X, y = load_merged_data(ds, X_y=True)
 
             X_train, X_test, y_train, y_test = train_test_split(X, y, p_test=0.3, seed=s)
 
