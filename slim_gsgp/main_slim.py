@@ -304,8 +304,16 @@ def slim(X_train: torch.Tensor, y_train: torch.Tensor, X_test: torch.Tensor = No
 
 if __name__ == "__main__":
 
-    from slim_gsgp.datasets.data_loader import load_merged_data
+
+    from slim_gsgp.datasets.data_loader import load_merged_data, load_ld50, load_ppb, load_istanbul, load_resid_build_sale_price
     from slim_gsgp.utils.utils import train_test_split
+
+    datas = {"energy": (load_merged_data("energy", X_y=True)),
+             "concrete": (load_merged_data("concrete", X_y=True)),
+             "resid_build_sale_price": (load_resid_build_sale_price(X_y=True)),
+             "toxicity": (load_ld50(X_y=True)),
+             "instanbul": (load_istanbul(X_y=True)),
+             "ppb": (load_ppb(X_y=True))}
 
     running = {"rmse" : {"algorithm": "SLIM+SIG1",
                         "copy_parent": True,
@@ -319,22 +327,58 @@ if __name__ == "__main__":
                         "max_depth": None,
                         "ms_lower": 0,
                         "ms_upper": 10,
-                        "p_inflate": 0.1}
+                        "p_inflate": 0.1},
+
+               "morph_rmse_slimMULABS":
+                   {"algorithm": "SLIM*ABS",
+                    "copy_parent": True,
+                    "max_depth": None,
+                    "ms_lower": 0,
+                    "ms_upper": 3,
+                    "p_inflate": 0.5},
+
+               "morph_rmse_slimSUMsig1":
+                   {"algorithm": "SLIM+SIG1",
+                    "copy_parent": True,
+                    "max_depth": None,
+                    "ms_lower": 0,
+                    "ms_upper": 3,
+                    "p_inflate": 0.5},
+
+               "morph_general":
+                   {"algorithm": "SLIM*SIG1",
+                    "copy_parent": True,
+                    "max_depth": None,
+                    "ms_lower": 0,
+                    "ms_upper": 10,
+                    "p_inflate": 0.1},
+
+               "morph_size":
+                   {"algorithm": "SLIM*SIG1",
+                    "copy_parent": True,
+                    "max_depth": 100,
+                    "ms_lower": 0,
+                    "ms_upper": 10,
+                    "p_inflate": 0.1}
 
                }
 
-    for ds in ["concrete"]:
+
+
+
+
+    for ds in datas.keys():
 
         for s in range(30):
 
-            X, y = load_merged_data(ds, X_y=True)
+            X, y = datas[ds][0], datas[ds][-1]
 
             X_train, X_test, y_train, y_test = train_test_split(X, y, p_test=0.3, seed=s)
 
             # X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, p_test=0.5, seed=s)
 
 
-            for goal in ["rmse", "size"]:
+            for goal in ["morph_rmse_slimMULABS", "morph_rmse_slimSUMsig1", "morph_general", "morph_size"]:
 
                 final_tree = slim(X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test,
                                   pop_size=200,
@@ -349,7 +393,7 @@ if __name__ == "__main__":
                                   ms_upper=running[goal]["ms_upper"],
                                   p_inflate=running[goal]["p_inflate"],
                                   log_path=os.path.join(os.getcwd(), "log", f"final_{ds}-{goal}.csv"),
-                                   reconstruct=False, n_jobs=1)
+                                   reconstruct=False, n_jobs=1, verbose=0)
 
                 #print(show_individual(final_tree, operator='sum'))
                 #predictions = final_tree.predict(data=X_test, slim_version=algorithm)
