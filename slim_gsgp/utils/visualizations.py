@@ -6,8 +6,22 @@ import seaborn as sb
 import matplotlib.pyplot as plt
 
 columns = ["algo", "experiment_id", "dataset", "seed", "generation", "training_fitness", "timing", "pop_node_count"]
+# old_palette = ["red", "green", "blue", "gold", "black", "gray"]
 
+palette =[
+    "#d62728",  # Muted Red
+    "#8c564b",  # Brownish Grey
+    "#2ca02c",  # Muted Green
 
+"#1f77b4",  # Muted Blue
+    "#9467bd",  # Muted Purple
+"#ff7f0e",  # Muted Orange
+
+    "#e377c2",  # Soft Pink
+    "#7f7f7f",  # Grey
+    "#bcbd22",  # Olive Green
+    "#17becf",  # Cyan
+]
 def get_column_names(log_level=1, base_cols=columns):
     base_cols = copy(base_cols)
 
@@ -113,9 +127,9 @@ def show_results(x_var="generation", y_var="training_fitness", experiment_id=-1,
                 num_algos = len(set([val[-1] for val in tr_plotting.index]))
 
                 sb.lineplot(data=tr_plotting, x=x_var, y=y_var, hue="algo", ax=ax[0],
-                            palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                            palette=palette[:num_algos], linewidth=3)
                 sb.lineplot(data=te_plotting, x=x_var, y='test_fitness', hue="algo", ax=ax[1]
-                            , palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                            , palette=palette[:num_algos], linewidth=3)
 
                 ax[0].set_xlabel("generation")
                 ax[0].set_ylabel("training fitness")
@@ -140,9 +154,9 @@ def show_results(x_var="generation", y_var="training_fitness", experiment_id=-1,
                 num_algos = len(set([val[-1] for val in tr_plotting.index]))
 
                 sb.lineplot(data=tr_plotting, x=x_var, y=y_var, hue="winning_by", ax=ax[0],
-                            palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                            palette=palette[:num_algos], linewidth=3)
                 sb.lineplot(data=te_plotting, x=x_var, y='test_fitness', hue="winning_by", ax=ax[1]
-                            , palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                            , palette=palette[:num_algos], linewidth=3)
 
                 ax[0].set_xlabel("generation")
                 ax[0].set_ylabel("training fitness")
@@ -172,9 +186,9 @@ def show_results(x_var="generation", y_var="training_fitness", experiment_id=-1,
                     # plotting training and testing side by side
                     fig, ax = plt.subplots(1, 2, figsize=(14, 5))
                     sb.lineplot(data=tr_plotting, x=x_var, y=y_var, hue="algo", ax=ax[0],
-                                palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                                palette=palette[:num_algos], linewidth=3)
                     sb.lineplot(data=te_plotting, x=x_var, y='test_fitness', hue="algo", ax=ax[1],
-                                palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                                palette=palette[:num_algos], linewidth=3)
 
                     ax[0].set_xlabel("generation")
                     ax[0].set_ylabel("training fitness")
@@ -200,9 +214,9 @@ def show_results(x_var="generation", y_var="training_fitness", experiment_id=-1,
                     # plotting training and testing side by side
                     fig, ax = plt.subplots(1, 2, figsize=(14, 5))
                     sb.lineplot(data=tr_plotting, x=x_var, y=y_var, hue="winning_by", ax=ax[0],
-                                palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                                palette=palette[:num_algos], linewidth=3)
                     sb.lineplot(data=te_plotting, x=x_var, y='test_fitness', hue="winning_by", ax=ax[1],
-                                palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                                palette=palette[:num_algos], linewidth=3)
 
                     ax[0].set_xlabel("generation")
                     ax[0].set_ylabel("training fitness")
@@ -231,7 +245,7 @@ def show_results(x_var="generation", y_var="training_fitness", experiment_id=-1,
                 plotting = pd.DataFrame(plotting.groupby([x_var, "algo"])[y_var].median())
                 num_algos = len(set([val[-1] for val in plotting.index]))
                 sb.lineplot(data=plotting, x=x_var, y=y_var, hue="algo",
-                            palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                            palette=palette[:num_algos], linewidth=3)
                 plt.xlabel(x_var)
                 plt.ylabel(y_var)
                 plt.ylim([0, 1000])
@@ -242,7 +256,7 @@ def show_results(x_var="generation", y_var="training_fitness", experiment_id=-1,
                 plotting = pd.DataFrame(plotting.groupby([x_var, "winning_by"])[y_var].median())
                 num_algos = len(set([val[-1] for val in plotting.index]))
                 sb.lineplot(data=plotting, x=x_var, y=y_var, hue="winning_by",
-                            palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                            palette=palette[:num_algos], linewidth=3)
                 plt.xlabel(x_var)
                 plt.ylabel(y_var)
                 plt.ylim([0, 1000])
@@ -259,7 +273,7 @@ def show_results(x_var="generation", y_var="training_fitness", experiment_id=-1,
                     plotting = pd.DataFrame(plotting.groupby([x_var, "algo"])[y_var].median())
                     num_algos = len(set([val[-1] for val in plotting.index]))
                     sb.lineplot(data=plotting, x=x_var, y=y_var, hue="algo",
-                                palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                                palette=palette[:num_algos], linewidth=3)
                     plt.xlabel(x_var)
                     plt.ylabel(y_var)
                     plt.ylim([0, 1000])
@@ -274,7 +288,7 @@ def show_results(x_var="generation", y_var="training_fitness", experiment_id=-1,
                     plotting = pd.DataFrame(plotting.groupby([x_var, "winning_by"])[y_var].median())
                     num_algos = len(set([val[-1] for val in plotting.index]))
                     sb.lineplot(data=plotting, x=x_var, y=y_var, hue="winning_by",
-                                palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                                palette=palette[:num_algos], linewidth=3)
                     plt.xlabel(x_var)
                     plt.ylabel(y_var)
                     plt.ylim([0, 1000])
@@ -294,7 +308,7 @@ def show_results(x_var="generation", y_var="training_fitness", experiment_id=-1,
                 plotting = pd.DataFrame(plotting.groupby([x_var, "algo"])[y_var].median())
                 num_algos = len(set([val[-1] for val in plotting.index]))
                 sb.lineplot(data=plotting, x=x_var, y=y_var, hue="algo",
-                            palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                            palette=palette[:num_algos], linewidth=3)
                 plt.xlabel(x_var)
                 plt.ylabel(y_var)
                 plt.title(f'{dataset.capitalize()}')
@@ -304,7 +318,7 @@ def show_results(x_var="generation", y_var="training_fitness", experiment_id=-1,
                 plotting = pd.DataFrame(plotting.groupby([x_var, "winning_by"])[y_var].median())
                 num_algos = len(set([val[-1] for val in plotting.index]))
                 sb.lineplot(data=plotting, x=x_var, y=y_var, hue="winning_by",
-                            palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                            palette=palette[:num_algos], linewidth=3)
                 plt.xlabel(x_var)
                 plt.ylabel(y_var)
                 plt.title(f'{dataset.capitalize()}')
@@ -319,7 +333,7 @@ def show_results(x_var="generation", y_var="training_fitness", experiment_id=-1,
                     plotting = pd.DataFrame(plotting.groupby([x_var, "algo"])[y_var].median())
                     num_algos = len(set([val[-1] for val in plotting.index]))
                     sb.lineplot(data=plotting, x=x_var, y=y_var, hue="algo",
-                                palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                                palette=palette[:num_algos], linewidth=3)
                     plt.xlabel(x_var)
                     plt.ylabel(y_var)
                     plt.title(f'{ds.capitalize()}')
@@ -329,7 +343,7 @@ def show_results(x_var="generation", y_var="training_fitness", experiment_id=-1,
                     plotting = pd.DataFrame(plotting.groupby([x_var, "winning_by"])[y_var].median())
                     num_algos = len(set([val[-1] for val in plotting.index]))
                     sb.lineplot(data=plotting, x=x_var, y=y_var, hue="winning_by",
-                                palette=["red", "green", "blue", "gold", "black", "gray"][:num_algos], linewidth=3)
+                                palette=palette[:num_algos], linewidth=3)
                     plt.xlabel(x_var)
                     plt.ylabel(y_var)
                     plt.title(f'{ds.capitalize()}')
