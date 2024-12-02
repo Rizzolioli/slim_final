@@ -274,18 +274,52 @@ def gsgp(X_train: torch.Tensor, y_train: torch.Tensor, X_test: torch.Tensor = No
 
 
 if __name__ == "__main__":
-    from slim_gsgp.datasets.data_loader import load_resid_build_sale_price
+    from slim_gsgp.datasets.data_loader import load_merged_data, load_ld50, load_ppb, load_istanbul, \
+        load_resid_build_sale_price
     from slim_gsgp.utils.utils import train_test_split
 
-    X, y = load_resid_build_sale_price(X_y=True)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, p_test=0.4)
-    X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, p_test=0.5)
+    datas = {"energy": (load_merged_data("energy", X_y=True)),
+    "concrete": (load_merged_data("concrete", X_y=True)),
+    "resid_build_sale_price": (load_resid_build_sale_price(X_y=True)),
+    "toxicity": (load_ld50(X_y=True)),
+    "instanbul": (load_istanbul(X_y=True)),
+    "ppb": (load_ppb(X_y=True))}
 
-    final_tree = gsgp(X_train=X_train, y_train=y_train,
-                      X_test=X_val, y_test=y_val,
-                      dataset_name='resid_build_sale_price', pop_size=100, n_iter=1000, log_path=os.path.join(os.getcwd(),
-                                                                "log", f"TESTING_GSGP.csv"), fitness_function="rmse", n_jobs=2)
+    running = {"gsgp":
+        {
+            "p_xo": 0,
+            "tournament_size": 2,
+            "elitism": True,
+            "init_depth": 6,
+            "ms_lower": 0,
+            "ms_upper": 1}}
 
-    predictions = final_tree.predict(X_test)
-    print(float(rmse(y_true=y_test, y_pred=predictions)))
+    for ds in datas.keys():
+
+        for s in range(30):
+
+            X, y = datas[ds][0], datas[ds][-1]
+
+            X_train, X_test, y_train, y_test = train_test_split(X, y, p_test=0.3, seed=s)
+
+            for goal in ["gsgp"]:
+                final_tree = gsgp(X_train=X_train, y_train=y_train,
+                                X_test=X_test, y_test=y_test,
+                                dataset_name=ds,
+                                pop_size=200,
+                                n_iter=2000,
+                                prob_const=0,
+                                fitness_function="rmse",
+                                n_jobs=1,
+                                verbose=0,
+                                seed=s,
+                                ms_upper=running[goal]["ms_upper"],
+                                ms_lower=running[goal]["ms_lower"],
+                                log_path=os.path.join(os.getcwd(), "log", f"final_gsgp.csv"),
+                                p_xo=running[goal]["p_xo"],
+                                tournament_size=running[goal]["tournament_size"],
+                                elitism=running[goal]["elitism"],
+                                init_depth=running[goal]["init_depth"],
+                                reconstruct=False,
+                                test_elite=True)
