@@ -265,10 +265,9 @@ if __name__ == "__main__":
     from slim_gsgp.datasets.data_loader import load_merged_data, load_ld50, load_ppb, load_istanbul, load_resid_build_sale_price
     from slim_gsgp.utils.utils import train_test_split
 
-    datas = {"resid_build_sale_price": (load_resid_build_sale_price(X_y=True)),
-             "toxicity": (load_ld50(X_y=True)),
-             "instanbul": (load_istanbul(X_y=True)),
-             "ppb": (load_ppb(X_y=True))}
+    datas = {
+        "concrete": (load_merged_data("concrete", X_y=True))
+             }
 
     # datas = {"energy": (load_merged_data("energy", X_y=True)),
              # "concrete": (load_merged_data("concrete", X_y=True)),
@@ -286,7 +285,7 @@ if __name__ == "__main__":
 
     for ds in datas.keys():
 
-        for s in range(30):
+        for s in range(29, 30):
 
             X, y = datas[ds][0], datas[ds][-1]
 
@@ -305,7 +304,7 @@ if __name__ == "__main__":
                                 n_jobs=1,
                                 verbose=0,
                                 seed=s,
-                                log_path=os.path.join(os.getcwd(), "log", f"final_gp.csv"),
+                                log_path=os.path.join(os.getcwd(), "log", f"concrete_29.csv"),
                                 p_xo=running[goal]["p_xo"],
                                 tournament_size=running[goal]["tournament_size"],
                                 elitism=running[goal]["elitism"],
